@@ -11,7 +11,7 @@ dvpn   = Darkvpn()
 cnames = { 'uk': 'United Kingdom',
            'us': 'United States',
            'fr': 'France',
-           'ch': 'China',
+           'ch': 'Switzerland',
            'de': 'Germany',
            'ee': 'Estonia',
            'hk': 'Hong Kong',
@@ -22,7 +22,7 @@ cnames = { 'uk': 'United Kingdom',
            }
 cwd  = os.path.dirname( os.path.realpath( __file__ ) )
 auth_file = "%s/conf/auth" % cwd 
-config    = 'configuration.conf'
+config    = "%s/conf/configuration.conf" % cwd
 conf_tpl  = "conf.tpl"
 
 def main() :
@@ -80,21 +80,27 @@ def ask_protocol( ) :
   ''' Ask user for the protocol'''
   proto = False
   while not proto :
-    tcp = raw_input( 'Choose Protocol (tcp / udp ): ' ).lower()
-    if tcp == 'udp' or tcp == 'tcp' :
-      proto = tcp
+    print "Choose protocol\n0) tcp\n1) udp\n"
+    tcp = raw_input( '0 / 1 ? : ' )
+    if tcp == '1' :
+      proto = 'udp'
+    elif tcp == '0' :
+      proto = 'tcp'
     else :
       print "Wrong value, please try again..."
   return proto
 
 def ask_port( ) :
   ''' Ask for the port number'''
-  port = ''
-  while not port.isdigit() :
-    port = raw_input( 'Please choose the port number ( 1194 / 443 ): ' )
-    if not port.isdigit() :
+  while True:
+    print "Choose port\n0) 1194\n1) 443\n"
+    chosen = raw_input( '0 / 1 ?: ' )
+    if chosen == '1' :
+      return 443
+    elif chosen == '0' :
+      return 1194
+    else :
       print "Wrong value, please try again..."
-  return port
 
 def save_auth( login, password ) :
   ''' Save authentication details to a pre-defined file'''

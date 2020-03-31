@@ -1,0 +1,21 @@
+#!/bin/bash
+
+ovpn=$(which openvpn 2>/dev/null)
+[ -z "${ovpn}" ]  && { echo "Please install openvpn first!"; exit 2; }
+[ "$UID" != "0" ] && { echo "Please run this script as user root!"; exit 1; }
+cwd=$(pwd)
+python generate.py
+[ "$?" != "0" ] && exit $?
+
+echo "Starting up the VPN service, please wait..."
+old_ip=$(curl -s ip.xoks.net)
+${ovpn} --config ${cwd}/conf/configuration.conf \
+        --auth-user-pass ${cwd}/conf/auth \
+        --writepid /var/run/openvpn.pid  \
+        --daemon 
+        # --script-security 2 \
+        # --up ${cwd}/up.sh \
+[ "$?" != "0" ] && { echo "Something went wrong, please try again later, exiting!"; exit 255; }
+sleep 10
+new_ip=$(curl -s ip.xoks.net)
+echo "Your old IP was ${old_ip} and new one is ${new_ip}"
