@@ -52,13 +52,6 @@ def main() :
     cfile.write( output )
     cfile.close()
 
-
-    # for line in fileinput.input(config, inplace=True):
-    #   line = line.rstrip('\r\n')
-    #   line = line.replace( "IP_ADDR", ipaddr   )
-    #   line = line.replace( "PORT",    port     )
-    #   line = line.replace( "PROTO",   protocol )
-    #   print line
   else :
     print "Wrong username / password!"
     sys.exit(1)

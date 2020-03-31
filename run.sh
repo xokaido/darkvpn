@@ -9,7 +9,7 @@ python generate.py
 
 echo "Thank you for been here!"
 exit
-openvpn --config ${cwd}/configuration.conf \
+${ovpn} --config ${cwd}/configuration.conf \
         --auth-user-pass ${cwd}/auth \
         --writepid /var/run/openvpn.pid \
         --script-security 2 \
