@@ -5,7 +5,6 @@ pid_file="/var/run/darkvpn.pid"
 auth_file="${cwd}/conf/auth"
 old_ip=$(curl -s ip.xoks.net)
 conf_file="${cwd}/conf/configuration.conf"
-distro="$(lsb_release -i | cut -f 2)"
 
 function main()
 {
