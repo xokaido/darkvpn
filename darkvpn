@@ -32,9 +32,6 @@ function setup()
 		apt install -y python-{requests,jinja2} openvpn
 	fi
 	echo "Packages and libraries have been installed"
-	sleep 2
-  python ${cwd}/lib/generate.py
-  [ "$?" != "0" ] && { echo "Something went wrong, could not generate configurations, exiting..."; exit $?; }
   echo "Setup has finished, run $0 up to start the service now."
   
 }
@@ -42,6 +39,8 @@ function startvpn()
 {
 ovpn=$(which openvpn 2>/dev/null)
 [ -z "${ovpn}" ]  && { echo "Please install openvpn first!"; exit 2; }
+python ${cwd}/lib/generate.py
+[ "$?" != "0" ] && { echo "Something went wrong, could not generate configurations, exiting..."; exit $?; }
 [ ! -e "${conf_file}" ] && { echo "No configuration file was found. Please run setup first, exiting..."; exit 3; }
 [ ! -e "${auth_file}" ] && { echo "No authentication file was found. Please run setup first, exiting..."; exit 3; }
 echo "Starting up the VPN service, please wait..."
