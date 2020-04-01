@@ -5,33 +5,42 @@ pid_file="/var/run/darkvpn.pid"
 auth_file="${cwd}/conf/auth"
 old_ip=$(curl -s ip.xoks.net)
 conf_file="${cwd}/conf/configuration.conf"
+distro="$(lsb_release -i | cut -f 2)"
 
 function main()
 {
-  runchecks
   [ "$1" = "status" ] && { checkrunning; exit 0; }
   [ "$1" = "down"   ] && { killvpn;      exit 0; }
   [ "$1" = "up"     ] && { startvpn;     exit 0; }
   [ "$1" = "setup"  ] && { setup;        exit 0; }
+  [ "$1" = "help"   ] && { helper;       exit 0; }
+
+  runchecks
   helper
 }
 function runchecks()
 {
-  ovpn=$(which openvpn 2>/dev/null)
-  [ -z "${ovpn}" ]  && { echo "Please install openvpn first!"; exit 2; }
   [ "$UID" != "0" ] && { echo "Please run this script as user root!"; exit 1; }
 }
 function setup()
 {
+	echo "Installing neccessary applications and libraries, please wait...."
+	if [[ "${distro}" = "Ubuntu" ||  "${distro}" = "Debian" ]];then
+		echo "Debian based"
+		apt install -y python-{requests,jinja2} openvpn
+	fi
   python ${cwd}/lib/generate.py
   [ "$?" != "0" ] && { echo "Something went wrong, could not generate configurations, exiting..."; exit $?; }
   echo "Setup has finished, run $0 up to start the service now."
+  
 }
 function startvpn() 
 {
-echo "Starting up the VPN service, please wait..."
+ovpn=$(which openvpn 2>/dev/null)
+[ -z "${ovpn}" ]  && { echo "Please install openvpn first!"; exit 2; }
 [ ! -e "${conf_file}" ] && { echo "No configuration file was found. Please run setup first, exiting..."; exit 3; }
 [ ! -e "${auth_file}" ] && { echo "No authentication file was found. Please run setup first, exiting..."; exit 3; }
+echo "Starting up the VPN service, please wait..."
 ${ovpn} --config ${conf_file} \
         --auth-user-pass ${auth_file} \
         --writepid  ${pid_file} \
@@ -73,6 +82,7 @@ down   - Stop DarkVPN service.
 setup  - Install neccessary applications and libraries, generate configurations
          ( run this before starting the service ).
 status - Get a status whether DarkVPN is running on this system or not.
+help   - Display this help and exit.
 
 XOK
 }
