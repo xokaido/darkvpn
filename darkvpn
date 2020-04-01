@@ -12,6 +12,7 @@ function main()
   [ "$1" = "down"   ] && { killvpn;      exit 0; }
   [ "$1" = "up"     ] && { startvpn;     exit 0; }
   [ "$1" = "setup"  ] && { setup;        exit 0; }
+  [ "$1" = "logout" ] && { logmeout;     exit 0; }
   [ "$1" = "help"   ] && { helper;       exit 0; }
 
   runchecks
@@ -72,18 +73,31 @@ function killvpn()
   rm ${pid_file}
   echo "Darkvpn has been stopped!"
 }
+function logmeout()
+{
+  [ -e "${auth_file}" ] && {
+                              echo -n "Clearing the credentials...";
+                              rm ${auth_file};
+                              echo " done";
+                              exit 0;
+                      } || {
+                              echo "No previous authentication was found, skipping!";
+                              exit 1;
+                            }
+}
 function helper()
 {
 cat <<XOK
 
 DarkVPN client application to manage VPN service on this computer.
 
-Usage: $0 [ up | down | setup | status ]
+Usage: $0 [ up | down | setup | logout | status ]
 
 up     - When configurations are generated run this command to start up the service.
 down   - Stop DarkVPN service.
 setup  - Install neccessary applications and libraries, generate configurations
          ( run this before starting the service ).
+logout - Clear all the authentication credentials and log out of DarkVPN.
 status - Get a status whether DarkVPN is running on this system or not.
 help   - Display this help and exit.
 
