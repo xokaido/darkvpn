@@ -1,21 +1,79 @@
 #!/bin/bash
-
-ovpn=$(which openvpn 2>/dev/null)
-[ -z "${ovpn}" ]  && { echo "Please install openvpn first!"; exit 2; }
-[ "$UID" != "0" ] && { echo "Please run this script as user root!"; exit 1; }
+# Setting up the variables
 cwd=$(pwd)
-python generate.py
-[ "$?" != "0" ] && exit $?
-
-echo "Starting up the VPN service, please wait..."
+pid_file="/var/run/darkvpn.pid"
+auth_file="${cwd}/conf/auth"
 old_ip=$(curl -s ip.xoks.net)
-${ovpn} --config ${cwd}/conf/configuration.conf \
-        --auth-user-pass ${cwd}/conf/auth \
-        --writepid /var/run/openvpn.pid  \
+conf_file="${cwd}/conf/configuration.conf"
+
+function main()
+{
+  runchecks
+  [ "$1" = "status" ] && { checkrunning; exit 0; }
+  [ "$1" = "down"   ] && { killvpn;      exit 0; }
+  [ "$1" = "up"     ] && { startvpn;     exit 0; }
+  [ "$1" = "setup"  ] && { setup;        exit 0; }
+  helper
+}
+function runchecks()
+{
+  ovpn=$(which openvpn 2>/dev/null)
+  [ -z "${ovpn}" ]  && { echo "Please install openvpn first!"; exit 2; }
+  [ "$UID" != "0" ] && { echo "Please run this script as user root!"; exit 1; }
+}
+function setup()
+{
+  python ${cwd}/lib/generate.py
+  [ "$?" != "0" ] && { echo "Something went wrong, could not generate configurations, exiting..."; exit $?; }
+  echo "Setup has finished, run $0 up to start the service now."
+}
+function startvpn() 
+{
+echo "Starting up the VPN service, please wait..."
+[ ! -e "${conf_file}" ] && { echo "No configuration file was found. Please run setup first, exiting..."; exit 3; }
+[ ! -e "${auth_file}" ] && { echo "No authentication file was found. Please run setup first, exiting..."; exit 3; }
+${ovpn} --config ${conf_file} \
+        --auth-user-pass ${auth_file} \
+        --writepid  ${pid_file} \
         --daemon 
         # --script-security 2 \
         # --up ${cwd}/up.sh \
-[ "$?" != "0" ] && { echo "Something went wrong, please try again later, exiting!"; exit 255; }
+[ "$?" != "0" ] && { echo "Something went wrong, could not start VPN, exiting..."; exit 255; }
 sleep 10
 new_ip=$(curl -s ip.xoks.net)
 echo "Your old IP was ${old_ip} and new one is ${new_ip}"
+
+}
+function checkrunning()
+{
+  [ ! -e "${pid_file}" ] && { echo "Darkvpn is not running!"; exit 1; }
+  PID=$(cat ${pid_file})
+  ps -p ${PID} > /dev/null
+  [ "$?" = "0" ] || { echo "Darkvpn is not running but the PID file found!"; exit 1; }
+  echo "Darkvpn is running under pid ${PID}"
+}
+function killvpn()
+{
+  [ ! -e "${pid_file}" ] && { echo "Darkvpn is not running!"; exit 1; }
+  PID=$(cat ${pid_file})
+  kill -9 ${PID}
+  rm ${pid_file}
+  echo "Darkvpn has been stopped!"
+}
+function helper()
+{
+cat <<XOK
+
+DarkVPN client application to manage VPN service on this computer.
+
+Usage: $0 [ up | down | setup | status ]
+
+up     - When configurations are generated run this command to start up the service.
+down   - Stop DarkVPN service.
+setup  - Install neccessary applications and libraries, generate configurations
+         ( run this before starting the service ).
+status - Get a status whether DarkVPN is running on this system or not.
+
+XOK
+}
+main $*

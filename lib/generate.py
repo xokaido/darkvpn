@@ -4,7 +4,7 @@ import os
 import sys
 import fileinput
 from jinja2 import Environment, FileSystemLoader
-from lib.darkvpn import Darkvpn
+from darkvpn import Darkvpn
 from collections import namedtuple
 
 dvpn   = Darkvpn()
@@ -20,7 +20,7 @@ cnames = { 'uk': 'United Kingdom',
            'ro': 'Romania',
            'se': 'Sweden',
            }
-cwd  = os.path.dirname( os.path.realpath( __file__ ) )
+cwd  = os.path.dirname( os.path.dirname( os.path.realpath( __file__ ) ) )
 auth_file = "%s/conf/auth" % cwd 
 config    = "%s/conf/configuration.conf" % cwd
 conf_tpl  = "conf.tpl"
