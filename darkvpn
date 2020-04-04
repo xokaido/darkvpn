@@ -3,7 +3,6 @@
 cwd=$(pwd)
 pid_file="/var/run/darkvpn.pid"
 auth_file="${cwd}/conf/auth"
-old_ip=$(curl -s ip.xoks.net)
 conf_file="${cwd}/conf/configuration.conf"
 
 function main()
@@ -28,9 +27,9 @@ function setup()
 	sleep 2
 	if which yum &>/dev/null;then
 		yum install -y epel-release &>/dev/null
-		yum install -y openvpn python-{requests,jinja2}
+		yum install -y curl openvpn python-{requests,jinja2}
 	elif which apt &>/dev/null;then
-		apt install -y python-{requests,jinja2} openvpn
+		apt install -y curl python-{requests,jinja2} openvpn
 	fi
 	echo "Packages and libraries have been installed"
   echo "Setup has finished, run $0 up to start the service now."
@@ -38,6 +37,7 @@ function setup()
 }
 function startvpn() 
 {
+old_ip=$(curl -s ip.xoks.net)
 ovpn=$(which openvpn 2>/dev/null)
 [ -z "${ovpn}" ]  && { echo "Please install openvpn first!"; exit 2; }
 python ${cwd}/lib/generate.py
