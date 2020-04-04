@@ -5,22 +5,25 @@ import sys
 import fileinput
 from jinja2 import Environment, FileSystemLoader
 from darkvpn import Darkvpn
-from collections import namedtuple
 
 dvpn   = Darkvpn()
-cnames = { 'uk': 'United Kingdom',
-           'us': 'United States',
-           'fr': 'France',
-           'ch': 'Switzerland',
-           'de': 'Germany',
-           'ee': 'Estonia',
+cnames = { 
            'ca': 'Canada',
+           'ee': 'Estonia',
+           'fr': 'France',
+           'de': 'Germany',
            'hk': 'Hong Kong',
            'nl': 'Netherlands',
            'pl': 'Poland',
            'ro': 'Romania',
            'se': 'Sweden',
+           'ch': 'Switzerland',
+           'uk': 'United Kingdom',
+           'us': 'United States'
            }
+# def sortit( dictionary ) :
+#   return dict( sorted(dictionary.items(), key=lambda (k,v): v) )
+
 cwd  = os.path.dirname( os.path.dirname( os.path.realpath( __file__ ) ) )
 auth_file = "%s/conf/auth" % cwd 
 config    = "%s/conf/configuration.conf" % cwd
@@ -60,16 +63,13 @@ def main() :
 def listCountries() :
   ''' List available countries for the darkVPN'''
   records = dvpn.countries()['records']
-  unique = {}
-  for x in records :
-    unique[ x.get('name') ] = cnames.get( x['name'] )
-  return unique
+  return { cnames.get( x.get( 'name' ) ) : x.get('name' ) for x in records }
 
 def ask_country( ) :
   ''' Ask user for the input'''
   print "Please choose Country: "
-  for c in listCountries():
-    print "\t%s) %s" % (c, cnames[c] )
+  for k,v in sorted( listCountries().iteritems() ) :
+    print "\t%s) %s" % (v, k )
   country = ''
   while country not in cnames :
     country = raw_input( 'Choose Country: ' )
